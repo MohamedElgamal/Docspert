@@ -1,0 +1,37 @@
+/* errors.css */
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f8f9fa;
+    color: #333;
+    text-align: center;
+}
+
+.server-error-container {
+    max-width: 600px;
+    padding: 20px;
+}
+
+.server-error-container h1 {
+    font-size: 3rem;
+    color: #dc3545;
+    margin-bottom: 20px;
+}
+
+.server-error-container p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+.server-error-container a {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.server-error-container a:hover {
+    text-decoration: underline;
+}
