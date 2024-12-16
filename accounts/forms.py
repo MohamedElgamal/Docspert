@@ -17,7 +17,6 @@ class AccountsUploadForm(forms.Form):
                 f"your are trying to upload unsupported file ext. allowed ext {', '.join(ALLOWED_FILE_TYPE)}."
             )
         # Add Content validation
-        # Modify the return to be dict
         data = self.convert_csv_to_dict(uploaded_file)
         return data
 

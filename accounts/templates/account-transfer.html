@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title%}Transfer Funds{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Transfer Funds</h1>
+
+    <!-- Account Information -->
+    <div class="card shadow border-0">
+        <div class="card-body">
+            <h3 class="card-title">{{ account.name }}</h3>
+            <ul class="list-group list-group-flush mt-3">
+                <li class="list-group-item">
+                    <strong>UUID:</strong> {{ account.id }}
+                </li>
+                <li class="list-group-item">
+                    <strong>Balance:</strong> {{ account.balance }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Transfer Amount Form -->
+    <div class="card shadow border-0 mt-4">
+        <div class="card-body">
+            <h4>Transfer Funds</h4>
+            <form method="post" action="{% url 'account_transfer_fund' account.id %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="transfer_amount" class="form-label">Amount to Transfer</label>
+                    <input type="number" name="amount" id="transfer_amount" class="form-control" 
+                           min="0" max="{{ account.balance }}" required>
+                    <div class="form-text">Enter an amount to transfer (max: {{ account.balance }})</div>
+                </div>
+                <div class="mb-3">
+                    <label for="recipient_account" class="form-label">Recipient Account (Search by Name)</label>
+                    <input type="text" name="search-query" class="form-control" placeholder="Search account" aria-label="Search account">
+                    <ul id="search-results" class="list-group mt-3" style="display:none;"></ul>
+                </div>
+                <button type="submit" class="btn btn-primary">Transfer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Back to List Button -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'accounts_list' %}" class="btn btn-secondary">Back to Accounts List</a>
+    </div>
+
+</div>
+
+<script>
+    // Handle search functionality (AJAX or simple JavaScript)
+    document.querySelector('input[name="search-query"]').addEventListener('input', function() {
+        const searchQuery = this.value;
+        const resultsContainer = document.getElementById('search-results');
+        
+        if (searchQuery.length > 0) {
+            // Perform a search for matching accounts (you might want to use AJAX to dynamically search the database)
+            fetch(`/search_accounts/?query=${searchQuery}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsContainer.innerHTML = '';
+                    data.forEach(account => {
+                        const resultItem = document.createElement('li');
+                        resultItem.classList.add('list-group-item');
+                        resultItem.innerHTML = `${account.name} - <a href="#" class="btn btn-sm btn-primary transfer-btn" data-account-id="${account.id}">Transfer to</a>`;
+                        resultsContainer.appendChild(resultItem);
+                    });
+                    resultsContainer.style.display = 'block';
+                });
+        } else {
+            resultsContainer.style.display = 'none';
+        }
+    });
+
+    // Handle transfer button click
+    document.getElementById('search-results').addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('transfer-btn')) {
+            const recipientId = e.target.getAttribute('data-account-id');
+            // Optionally update a hidden input field with the recipient account ID, if needed.
+            document.querySelector('input[name="recipient_account"]').value = recipientId;
+        }
+    });
+</script>
+
+{% endblock %}

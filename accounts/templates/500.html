@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/errors.css' %}">
 <div class="server-error-container">
     <h1>500 - Server Error</h1>
     <p>{{ error_message|default:"Oops! Something went wrong on our end. We’re working to fix the issue." }}</p>

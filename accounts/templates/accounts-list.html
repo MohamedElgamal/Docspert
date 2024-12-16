@@ -1,1 +1,45 @@
-<h1>Accounts List</h1>
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title%}Accounts List{%endblock%}
+{% block content%}
+<div class="container mt-4">
+    <h1 class="mb-4 text-center">Accounts List</h1>
+    <form method="get" action="" class="mb-4">
+        <div class="input-group">
+            <input 
+                type="text" 
+                name="search-query" 
+                class="form-control" 
+                placeholder="Search accounts by name" 
+                aria-label="Search accounts">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </form>
+    <!-- List of accounts -->
+    <div class="container row">
+        {% if accounts|length == 0%}
+            <p>No result found.</p>
+        {% endif %}
+        {% for account in accounts %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ account.name }}</h5>
+                        <p class="card-text">
+                            <!-- You can add more account details here -->
+                            ID: {{ account.id }}<br>
+                        </p>
+                        <a href="{% url 'account_details' account.pk %}" class="btn btn-primary btn-sm">
+                            View Details
+                        </a> 
+                        <a href="{% url 'account_transfer_fund' account.pk %}" class="btn btn-secondary btn-sm">
+                            Transfer funds to
+                        </a> 
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

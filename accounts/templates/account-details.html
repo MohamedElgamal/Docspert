@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title%}Account Details{%endblock%}
+{% block content%}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Account Details</h1>
+
+    <div class="card shadow border-0">
+        <div class="card-body">
+            <h3 class="card-title">{{ account.name }}</h3>
+            <ul class="list-group list-group-flush mt-3">
+                <li class="list-group-item">
+                    <strong>UUID:</strong> {{ account.id }}
+                </li>
+                <li class="list-group-item">
+                    <strong>Balance:</strong> {{ account.balance }}
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Back to List Button -->
+    <div class="mt-4 text-center">
+        <a href="{% url 'accounts_list' %}" class="btn btn-secondary">Back to Accounts List</a>
+    </div>
+</div>
+{% endblock %}
