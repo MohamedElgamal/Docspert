@@ -1,10 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.views.generic import View, ListView, DetailView
 from django.urls import reverse_lazy, reverse
 from .forms import AccountsUploadForm
 from .models import Account
+from decimal import Decimal
 import csv
+
 
 # Create your views here.
 
@@ -70,48 +72,71 @@ class AccountsListView(ListView):
             )  # Filter and return only all records that contain search_value as part of account name
         return query_set
 
+class AccountSearchView(ListView):
+    """Handle Listing of accounts & search for specific account using name, return json obj"""
+    model = Account
+
+    def get_queryset(self):
+        query_set = super().get_queryset()
+        search_value = self.request.GET.get("search_query", "")
+        if search_value:
+            query_set = query_set.filter(
+                name__icontains=search_value
+            )  # Filter and return only all records that contain search_value as part of account name
+        return query_set
+
+    def render_to_response(self, context):
+        data = list(self.get_queryset().values())
+        return JsonResponse(data, safe=False)
+
 
 class AccountDetailsView(DetailView):
     """Handle account details"""
-
     model = Account
     template_name = "account-details.html"
     context_object_name = "account"
 
 
 class AccountTransferFundsView(DetailView):
-    """Handle account transfer funds"""
+    """Display transfer account page"""
 
     model = Account
     template_name = "account-transfer.html"
+    context_object_name = "account"
 
-    def get(self, request, pk):
-        account = get_object_or_404(Account, pk=pk)
 
-        search_value = request.GET.get("search_query", "")
-        transfer_to_id = request.GET.get("transfer-to-id", None)
-        print("Test: ")
-        print(transfer_to_id)
-        search_accounts = []
-        if search_value:
-            search_accounts = Account.objects.filter(name__icontains=search_value)
-            print(search_accounts)
+class TransferFundsView(View):
+    """Handle and validate transferring balance between two accounts"""
+    model = Account
 
-        # Return the context with the account and search results
-        context = {
-            "search_value": search_value,
-            "account": account,
-            "search_accounts": search_accounts,
-        }
+    def get(self, request):
+        transfer_from = request.GET.get('transfer_from')
+        transfer_to = request.GET.get('transfer_to')
+        transfer_balance = request.GET.get('transfer_balance')
 
-        return render(request, self.template_name, context)
+        if not transfer_from or not transfer_to or not transfer_balance:
+            return JsonResponse({'error': 'Missing required parameters'}, status=400)
 
-    def post(self, request, pk):
-        # Handle the transfer logic here (e.g., get form data, validate, transfer funds)
-        # You can process the form submission and perform the necessary actions
-        # For example:
-        account = get_object_or_404(Account, pk=pk)
-        # process transfer, like updating account balances
+        try:
+            transfer_from_account = Account.objects.get(id=transfer_from)
+            transfer_to_account = Account.objects.get(id=transfer_to)
+            transfer_balance = Decimal(transfer_balance)
 
-        # Redirect after the transfer is successful (you can modify this logic as needed)
-        return HttpResponseRedirect(reverse("account_transfer_fund", kwargs={"pk": pk}))
+            # Check if user try to tranfer to himself
+            if transfer_from_account == transfer_to_account:
+                 return JsonResponse({'error': 'Cannot transfer to himself'}, status=400)
+            # Check if transfer_from account has enough balance
+            if transfer_from_account.balance < transfer_balance:
+                return JsonResponse({'error': 'Insufficient balance'}, status=400)
+
+            transfer_from_account.balance -= transfer_balance
+            transfer_to_account.balance += transfer_balance
+            transfer_from_account.save()
+            transfer_to_account.save()
+
+            return JsonResponse({'message': 'Transfer successful'}, status=200)
+
+        except Account.DoesNotExist:
+            return JsonResponse({'error': 'Account not found'}, status=404)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid transfer balance'}, status=400)

@@ -23,54 +23,31 @@
         </div>
     </div>
 
-    <!-- Transfer Amount Form -->
-    <div class="card shadow border-0 mt-4">
-
+    <div id ="transfer-amount-container" class="card shadow border-0 mt-4">
+        <div id="alert-box" class="alert alert-danger mt-3" style="display:none"></div>
         <div class="card-body">
             <h4>Transfer Funds</h4>
+            <div class="mb-3">
+                <label for="transfer_amount" class="form-label">Amount to Transfer</label>
+                <input type="number" name="amount" id="transfer_amount" class="form-control"
+                       min="0.01" max="{{ account.balance }}" step="0.01" required>
+                <div class="form-text">Enter an amount to transfer (max: {{ account.balance }})</div>
+            </div>
 
-            <form id="account-search-from" method="get"action="{% url 'account_transfer_fund' account.id %}" class="mb-4">
-                <div class="input-group">
-                    <input
-                        type="text"
-                        name="search_query"
-                        class="form-control"
-                        placeholder="Search accounts by name"
-                        aria-label="Search accounts">
-                    <button class="btn btn-primary" type="submit">Search</button>
-                </div>
-            </form>
-
-            <form id="account-transfer-form" method="get" action="{% url 'account_transfer_fund' account.id %}">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="transfer_amount" class="form-label">Amount to Transfer</label>
-                    <input type="number" name="amount" id="transfer_amount" class="form-control"
-                           min="0" max="{{ account.balance }}" step="0.01" required>
-                    <div class="form-text">Enter an amount to transfer (max: {{ account.balance }})</div>
-                </div>
-                <div class="container row">
-                    {% for account in search_accounts %}
-                            <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card shadow-sm border-0">
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ account.name }}</h5>
-                                        <p class="card-text">
-                                            <!-- You can add more account details here -->
-                                            ID: {{ account.id }}<br>
-                                            Balance: {{account.balance}}
-                                        </p>
-                                        <input type="text" name="transfer-to-id" value="{{account.id}}" hidden/>
-                                        <button type="submit" class="btn btn-primary">Transfer</button>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                </div>
-
-            </form>
+            <div class="input-group">
+                <input
+                    id="search-input"
+                    type="text"
+                    name="search_query"
+                    class="form-control"
+                    placeholder="Search accounts by name"
+                    aria-label="Search accounts">
+                <button id="search-btn" class="btn btn-primary" type="submit">Search</button>
+            </div>
 
         </div>
+
+        <div id="search-result" class="container row"></div>
     </div>
 
     <!-- Back to List Button -->
@@ -81,38 +58,122 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const form = document.getElementById("account-transfer-form");
-        const transferAmountInput = document.getElementById("transfer_amount");
-        const maxBalance = parseFloat("{{ account.balance }}");
-
+    const fetchSearchResult = async ()=>{
+        let accountSearchQuery = document.getElementById("search-input").value.trim()
+        let fetchResult = await fetch(`/accounts/search?search_query=${encodeURIComponent(accountSearchQuery)}`)
+        if(!fetchResult.ok){
+            throw new Error(`Http Error! ${fetchResult.status}`)
+        }
+        let searchResult = await fetchResult.json()
+        renderSearchResult(searchResult)
+    }
+    document.getElementById("search-input").addEventListener("keyup", (e)=>{
+        if(e.key === "Enter"){
+            fetchSearchResult()
+        }
+    })
+    document.getElementById("search-btn").addEventListener("click", fetchSearchResult)
+    
+    let renderSearchResult = (data)=>{
+        const resultsContainer = document.getElementById("search-result");
+    
+        // Clear previous results
+        resultsContainer.innerHTML = "";
+    
+        if (data.length > 0) {
+            data.forEach(account => {
+                // create card structure to render search result
+                const cardHTML = `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title">${account.name}</h5>
+                            <p class="card-text">
+                                ID: ${account.id} <br>
+                                Balance: ${account.balance}
+                            </p>
+                            <input type="text" name="transfer-to-id" value="${account.id}" hidden />
+                            <button type="button" class="btn btn-primary" onclick="handleTransfer('${account.id}')">
+                                Transfer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+                // Append the card to the container
+                resultsContainer.insertAdjacentHTML("beforeend", cardHTML)
+            });
+        } else {
+            resultsContainer.innerHTML = `
+                <div class="col-12">
+                    <p class="text-muted">No results found.</p>
+                </div>
+            `;
+        }
+    }
+    
+    let validateTransferBalance = ()=>{
+        const transferAmountInput = document.getElementById("transfer_amount")
+        const alertBox = document.getElementById("alert-box")
+        const maxBalance = parseFloat("{{ account.balance }}")
         // Alert container for Bootstrap
-        const alertContainer = document.createElement("div");
-        alertContainer.className = "alert alert-danger mt-3";
-        alertContainer.style.display = "none";
-        form.appendChild(alertContainer);
+        const alertContainer = document.createElement("div")
+        alertBox.style.display = "none"
+        const enteredAmount = parseFloat(transferAmountInput.value)
+    
+        // Clear previous alert message
+        alertBox.style.display = "none"
+        alertBox.innerHTML = ""
+    
+        if (isNaN(enteredAmount) || enteredAmount <= 0) {
+            alertBox.innerHTML = "Please enter a valid amount greater than 0.";
+            alertBox.style.display = "block"
+            return false
+        } 
+    
+        if (enteredAmount > maxBalance) {
+            alertBox .innerHTML = `Transfer amount should not exceed the available balance: <strong>{{ account.balance }}</strong>.`
+            alertBox.style.display = "block"
+            return false
+        }
+        return true;
+    
+    
+    }
+    
+    let transferAmount = async (transferFrom, transferTo, transferBalance) => {
+        // Ensure that arguments are properly encoded at the start
+        transferFrom = encodeURIComponent(transferFrom)
+        transferTo = encodeURIComponent(transferTo)
+        transferBalance = encodeURIComponent(transferBalance)
+    
+        let url = `/accounts/tranfer-balance?transfer_from=${transferFrom}&transfer_to=${transferTo}&transfer_balance=${transferBalance}`;
+    
+        let response = await fetch(url);
+        console.log("sent")
+        if (response.ok) {
+            const data = await response.json()
+            alert("Balance Transferred.")
+            location.reload()
+        } else {
+            const errorData = await response.json();
+            alert(`Error: ${errorData.error}`);
+        }
+    }
+    
+    
 
-        form.addEventListener("submit", function (event) {
-            const enteredAmount = parseFloat(transferAmountInput.value);
+    let handleTransfer = (transferTo)=>{
 
-            // Clear previous alert message
-            alertContainer.style.display = "none";
-            alertContainer.innerHTML = "";
-
-            if (isNaN(enteredAmount) || enteredAmount <= 0) {
-                alertContainer.innerHTML = "Please enter a valid amount greater than 0.";
-                alertContainer.style.display = "block";
-                event.preventDefault();
-                return;
-            }
-
-            if (enteredAmount > maxBalance) {
-                alertContainer.innerHTML = `Transfer amount should not exceed the available balance: <strong>{{ account.balance }}</strong>.`;
-                alertContainer.style.display = "block";
-                event.preventDefault();
-            }
-        });
-    });
+        if(validateTransferBalance()===true){
+            //get the uuid of account that we will balance from
+            const transferFrom = "{{ account.id }}"
+            // value of balance that will be transfered
+            const transferBalance = parseFloat(document.getElementById("transfer_amount").value.trim())
+            transferAmount(transferFrom, transferTo, transferBalance)
+        }
+    }
 </script>
+
 
 {% endblock %}
