@@ -3,16 +3,18 @@
 {% load widget_tweaks %}
 {% block title%}Accounts List{%endblock%}
 {% block content%}
+<div>Test: {{search_value}}</div>
 <div class="container mt-4">
     <h1 class="mb-4 text-center">Accounts List</h1>
     <form method="get" action="" class="mb-4">
         <div class="input-group">
-            <input 
-                type="text" 
-                name="search-query" 
-                class="form-control" 
-                placeholder="Search accounts by name" 
-                aria-label="Search accounts">
+        <input
+            type="text"
+            value="{{search_value}}"
+            name="search_query"
+            class="form-control"
+            placeholder="Search accounts by name"
+            aria-label="Search accounts">
             <button class="btn btn-primary" type="submit">Search</button>
         </div>
     </form>
@@ -32,10 +34,10 @@
                         </p>
                         <a href="{% url 'account_details' account.pk %}" class="btn btn-primary btn-sm">
                             View Details
-                        </a> 
+                        </a>
                         <a href="{% url 'account_transfer_fund' account.pk %}" class="btn btn-secondary btn-sm">
                             Transfer funds to
-                        </a> 
+                        </a>
                     </div>
                 </div>
             </div>

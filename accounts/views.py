@@ -1,6 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseRedirect
 from django.views.generic import View, ListView, DetailView
-from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from .forms import AccountsUploadForm
 from .models import Account
@@ -11,6 +11,7 @@ import csv
 
 class AccountsUploadView(View):
     """Handle upload the file that contain the accounts to server and save it into database"""
+
     template_name = "accounts-upload.html"
 
     def get(self, request):
@@ -55,27 +56,62 @@ class AccountsUploadView(View):
 
 class AccountsListView(ListView):
     """Handle Listing of accounts & search for specific account using name"""
+
     model = Account
     template_name = "accounts-list.html"
     context_object_name = "accounts"
 
     def get_queryset(self):
         query_set = super().get_queryset()
-        search_value = self.request.GET.get("search-query", None)
+        search_value = self.request.GET.get("search_query", "")
         if search_value:
-            query_set = (
-                query_set.filter(name__icontains=search_value)
-            ) # Filter and return only all records that contain search_value as part of account name
+            query_set = query_set.filter(
+                name__icontains=search_value
+            )  # Filter and return only all records that contain search_value as part of account name
         return query_set
+
 
 class AccountDetailsView(DetailView):
     """Handle account details"""
+
     model = Account
     template_name = "account-details.html"
     context_object_name = "account"
 
+
 class AccountTransferFundsView(DetailView):
     """Handle account transfer funds"""
+
     model = Account
     template_name = "account-transfer.html"
-    context_object_name = "account"
+
+    def get(self, request, pk):
+        account = get_object_or_404(Account, pk=pk)
+
+        search_value = request.GET.get("search_query", "")
+        transfer_to_id = request.GET.get("transfer-to-id", None)
+        print("Test: ")
+        print(transfer_to_id)
+        search_accounts = []
+        if search_value:
+            search_accounts = Account.objects.filter(name__icontains=search_value)
+            print(search_accounts)
+
+        # Return the context with the account and search results
+        context = {
+            "search_value": search_value,
+            "account": account,
+            "search_accounts": search_accounts,
+        }
+
+        return render(request, self.template_name, context)
+
+    def post(self, request, pk):
+        # Handle the transfer logic here (e.g., get form data, validate, transfer funds)
+        # You can process the form submission and perform the necessary actions
+        # For example:
+        account = get_object_or_404(Account, pk=pk)
+        # process transfer, like updating account balances
+
+        # Redirect after the transfer is successful (you can modify this logic as needed)
+        return HttpResponseRedirect(reverse("account_transfer_fund", kwargs={"pk": pk}))
