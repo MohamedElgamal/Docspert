@@ -108,3 +108,11 @@ Follow these steps to set up the Django project on your local machine:
    - By default, this project uses SQLite as the database. If you want to switch to another database instance (e.g., PostgreSQL, MySQL), you need to:
      - Update the `DATABASES` section in the `settings.py` file with your database configuration.
      - Modify the `docker-compose.yml` file to include the new database service and ensure proper connectivity between containers.
+
+## To run unit test to check the logic
+
+1. **Run Unit Test:**
+
+   ```bash
+   python manage.py test
+   ```
