@@ -1,0 +1,8 @@
+ web-app:
+    image: docspert:latest
+    container_name: docspert-web-container
+    ports:
+      - "8000:8000"
+    entrypoint: ["/bin/sh", "/app/startup.sh"]
+    volumes:
+      - .:/app  # Bind volume to reflect changes

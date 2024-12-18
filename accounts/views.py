@@ -1,14 +1,22 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from django.views.generic import View, ListView, DetailView
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
 from .forms import AccountsUploadForm
 from .models import Account
 from decimal import Decimal
-import csv
 
 
 # Create your views here.
+
+
+class AccountsHomeView(View):
+    """Responsible of returning home page of accounts"""
+
+    template_name = "accounts-home.html"
+
+    def get(self, request):
+        return render(request, self.template_name)
 
 
 class AccountsUploadView(View):
@@ -72,8 +80,10 @@ class AccountsListView(ListView):
             )  # Filter and return only all records that contain search_value as part of account name
         return query_set
 
+
 class AccountSearchView(ListView):
     """Handle Listing of accounts & search for specific account using name, return json obj"""
+
     model = Account
 
     def get_queryset(self):
@@ -92,6 +102,7 @@ class AccountSearchView(ListView):
 
 class AccountDetailsView(DetailView):
     """Handle account details"""
+
     model = Account
     template_name = "account-details.html"
     context_object_name = "account"
@@ -107,15 +118,16 @@ class AccountTransferFundsView(DetailView):
 
 class TransferFundsView(View):
     """Handle and validate transferring balance between two accounts"""
+
     model = Account
 
     def get(self, request):
-        transfer_from = request.GET.get('transfer_from')
-        transfer_to = request.GET.get('transfer_to')
-        transfer_balance = request.GET.get('transfer_balance')
+        transfer_from = request.GET.get("transfer_from")
+        transfer_to = request.GET.get("transfer_to")
+        transfer_balance = request.GET.get("transfer_balance")
 
         if not transfer_from or not transfer_to or not transfer_balance:
-            return JsonResponse({'error': 'Missing required parameters'}, status=400)
+            return JsonResponse({"error": "Missing required parameters"}, status=400)
 
         try:
             transfer_from_account = Account.objects.get(id=transfer_from)
@@ -124,19 +136,19 @@ class TransferFundsView(View):
 
             # Check if user try to tranfer to himself
             if transfer_from_account == transfer_to_account:
-                 return JsonResponse({'error': 'Cannot transfer to himself'}, status=400)
+                return JsonResponse({"error": "Cannot transfer to himself"}, status=400)
             # Check if transfer_from account has enough balance
             if transfer_from_account.balance < transfer_balance:
-                return JsonResponse({'error': 'Insufficient balance'}, status=400)
+                return JsonResponse({"error": "Insufficient balance"}, status=400)
 
             transfer_from_account.balance -= transfer_balance
             transfer_to_account.balance += transfer_balance
             transfer_from_account.save()
             transfer_to_account.save()
 
-            return JsonResponse({'message': 'Transfer successful'}, status=200)
+            return JsonResponse({"message": "Transfer successful"}, status=200)
 
         except Account.DoesNotExist:
-            return JsonResponse({'error': 'Account not found'}, status=404)
+            return JsonResponse({"error": "Account not found"}, status=404)
         except ValueError:
-            return JsonResponse({'error': 'Invalid transfer balance'}, status=400)
+            return JsonResponse({"error": "Invalid transfer balance"}, status=400)
