@@ -121,8 +121,9 @@ Follow these steps to set up the Django project on your local machine:
 
 You can watch a demonstration of the functionality of the project in the video below:
 
-[![Functionality Demo](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://github.com/MohamedElgamal/Docspert/blob/main/functionality%20test.mp4)
+[![Functionality Demo](https://img.shields.io/badge/Watch%20Video%20Demo-Click%20Here-blue)](https://drive.google.com/file/d/1fO25SxCj28UQmH9YgBSlsdG4l-GRPJBV/view?usp=sharing)
 
-Click on the image to play the video directly from the repository.
+Click on the image or the link to view the video directly from Google Drive.
 
-> **Note**: If the video does not play, you can directly access it by [clicking here](https://github.com/MohamedElgamal/Docspert/blob/main/functionality%20test.mp4).
+> **Note**: If the video does not play, you can directly access it by [clicking here](https://drive.google.com/file/d/1fO25SxCj28UQmH9YgBSlsdG4l-GRPJBV/view?usp=sharing).
+
