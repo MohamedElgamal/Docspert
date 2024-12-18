@@ -1,5 +1,7 @@
- web-app:
-    image: docspert:latest
+version: "3.8"
+services:
+  web-app:
+    image: docspert-web:latest
     container_name: docspert-web-container
     ports:
       - "8000:8000"
