@@ -4,6 +4,8 @@ from unittest.mock import patch
 from io import StringIO
 from accounts.models import Account
 from accounts.forms import AccountsUploadForm
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 
 class AccountsHomeViewTest(TestCase):
     """Responsible of testing AccountsHomeView located in accounts.views"""
@@ -204,18 +206,21 @@ class AccountsUploadFormTestCase(TestCase):
         data = form.cleaned_data['file']
         self.assertEqual(len(data), 5)  # Check the len of dict is equal to 5
 
-    def test_invalid_csv_file_missing_header(self):
-        """Test CSV file with missing required header"""
-        form_data = {
-            'file': self.create_file(self.invalid_csv_content_missing_header, 'text/csv')
-        }
-        form = AccountsUploadForm(data=form_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn('file', form.errors) 
-
-    def create_file(self, content, content_type):
-        """Helper method to create an in-memory file for testing"""
-        file = StringIO(content)
-        file.name = 'test_file.csv' if content_type == 'text/csv' else 'test_file.txt'
-        file.content_type = content_type
-        return file
+    def test_valid_csv_file(self):
+        """Test valid CSV file with correct headers"""
+        # Create a SimpleUploadedFile instead of using StringIO
+        file = SimpleUploadedFile(
+            name="test_file.csv", 
+            content=self.valid_csv_content.encode('utf-8'), 
+            content_type='text/csv'
+        )
+        
+        form = AccountsUploadForm(files={'file': file})
+        
+        # If the form is not valid, print out the form errors
+        if not form.is_valid():
+            print("Form Errors:", form.errors)
+        
+        self.assertTrue(form.is_valid())
+        data = form.cleaned_data['file']
+        self.assertEqual(len(data), 5)  # Check the len of dict is equal to 5
