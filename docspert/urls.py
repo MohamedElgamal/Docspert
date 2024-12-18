@@ -20,7 +20,7 @@ from django.urls import path, include
 from accounts.views import AccountsHomeView
 
 urlpatterns = [
-    path("", AccountsHomeView.as_view()),
+    path("", AccountsHomeView.as_view(), name="accounts_home"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
 ]
