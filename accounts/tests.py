@@ -1,7 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from unittest.mock import patch
-from io import StringIO
 from accounts.models import Account
 from accounts.forms import AccountsUploadForm
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -208,7 +207,6 @@ class AccountsUploadFormTestCase(TestCase):
 
     def test_valid_csv_file(self):
         """Test valid CSV file with correct headers"""
-        # Create a SimpleUploadedFile instead of using StringIO
         file = SimpleUploadedFile(
             name="test_file.csv", 
             content=self.valid_csv_content.encode('utf-8'), 
