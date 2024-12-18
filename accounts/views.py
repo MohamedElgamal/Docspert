@@ -72,6 +72,8 @@ class AccountsListView(ListView):
     context_object_name = "accounts"
 
     def get_queryset(self):
+        """Check if user set query parameter or not if yes then filter 
+        the query search to return only result related to that query parameter """
         query_set = super().get_queryset()
         search_value = self.request.GET.get("search_query", "")
         if search_value:

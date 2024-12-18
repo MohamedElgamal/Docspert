@@ -23,6 +23,8 @@ This Django project provides the following features:
 5. **Transfer Balance:**
    - Transfer balances between two accounts with proper validation.
 
+6. **Unit Test:**
+   - Unit test has been written to test main functionality (Balance Transfer, Search, Accounts List, Uploads files with different extensions)
 ---
 
 ## Setting up the Django Project Locally
