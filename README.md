@@ -116,3 +116,13 @@ Follow these steps to set up the Django project on your local machine:
    ```bash
    python manage.py test
    ```
+
+## Video Demo
+
+You can watch a demonstration of the functionality of the project in the video below:
+
+[![Functionality Demo](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://github.com/MohamedElgamal/Docspert/blob/main/functionality%20test.mp4)
+
+Click on the image to play the video directly from the repository.
+
+> **Note**: If the video does not play, you can directly access it by [clicking here](https://github.com/MohamedElgamal/Docspert/blob/main/functionality%20test.mp4).
